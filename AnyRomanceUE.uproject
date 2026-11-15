@@ -1,0 +1,22 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{5B9488BA-4AA1-91D0-8647-B7A72E1B99EE}",
+	"Category": "Games",
+	"Description": "Any Romance: a first-person parkour speedrun dating sim.",
+	"Modules": [
+		{
+			"Name": "AnyRomanceUE",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "PythonScriptPlugin",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		}
+	]
+}

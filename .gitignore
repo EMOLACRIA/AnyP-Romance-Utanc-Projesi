@@ -1,0 +1,15 @@
+﻿# Unreal build output and caches (rebuilt from Source and Content)
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+
+# IDE files (regenerated from the .uproject)
+.vs/
+*.sln
+*.slnx
+.vsconfig
+
+# Python caches
+__pycache__/
+*.pyc
