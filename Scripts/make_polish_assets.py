@@ -122,6 +122,48 @@ for i, rgb in enumerate(TINTS):
     mi = fresh("MI_Block_%d" % i, LOOK, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
     MEL.set_material_instance_parent(mi, master)
     MEL.set_material_instance_vector_parameter_value(mi, "Tint", unreal.LinearColor(rgb[0], rgb[1], rgb[2], 1))
+
+# CityPack and the background city. Everything drawn as instances goes through M_PaintTint (it carries the
+# instancing flag), with the mesh's own painted texture: MI_<Mesh>_<n>. Facades and ground floors get the
+# first FACADE_TINTS colours, vehicles get CAR_TINTS strong ones (their paint is near white), the rest n = 0.
+# route_kit.py reads the same numbers.
+CITY = LOOK + "/City"
+FACADE_TINTS = 5
+CAR_TINTS = [(1.00, 1.00, 1.00), (0.95, 0.36, 0.30), (0.34, 0.56, 0.86), (0.99, 0.80, 0.28), (0.40, 0.70, 0.60),
+             (0.36, 0.37, 0.42)]
+PARKOUR_INSTANCED = ("Roof_Tile_4x4", "Water_Tank", "AC_Unit", "AC_Unit_Large", "Chimney_Brick", "Roof_Access",
+                     "Solar_Panel", "Satellite_Dish", "Vent_Mushroom", "Billboard_6x3")
+
+
+def city_instances(pack, mesh, tints):
+    tex = EAL.load_asset("/Game/%s/T_%s" % (pack, mesh))
+    if not tex:
+        unreal.log_warning("no texture for %s/%s" % (pack, mesh))
+        return
+    for n, rgb in enumerate(tints):
+        mi = fresh("MI_%s_%d" % (mesh, n), CITY, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+        MEL.set_material_instance_parent(mi, master)
+        MEL.set_material_instance_texture_parameter_value(mi, "Paint", tex)
+        MEL.set_material_instance_vector_parameter_value(mi, "Tint", unreal.LinearColor(rgb[0], rgb[1], rgb[2], 1))
+
+
+city_meshes = 0
+for path in EAL.list_assets("/Game/CityPack", recursive=False, include_folder=False):
+    name = path.split("/")[-1].split(".")[0]
+    if not name.startswith("SM_"):
+        continue
+    name = name[3:]
+    if name.startswith(("Block_", "Ground_")):
+        city_instances("CityPack", name, TINTS[:FACADE_TINTS])
+    elif name in ("Car_Parked", "Van_Parked"):
+        city_instances("CityPack", name, CAR_TINTS)
+    else:
+        city_instances("CityPack", name, TINTS[:1])
+    city_meshes += 1
+for name in PARKOUR_INSTANCED:
+    city_instances("ParkourPack", name, TINTS[:1])
+unreal.log("City materials: %d CityPack meshes" % city_meshes)
+
 burst()
 flat("M_Rope", (0.86, 0.78, 0.62), 0.8)
 flat("M_Street", (0.055, 0.062, 0.075))

@@ -158,7 +158,25 @@ public:
     UPROPERTY(EditAnywhere, Category = "Romance")
     bool bFlatGrid = false;
 
+    // Set by AddPieces: the instances were laid out by a script, so Rebuild leaves them alone.
+    UPROPERTY(EditAnywhere, Category = "Romance")
+    bool bManual = false;
+
+    // Scripted scenery: adds instances of Mesh (drawn with Material, or the mesh's own when null) at
+    // transforms relative to this actor. Each mesh and material pair shares one instanced component,
+    // so a whole district of mixed facades, street tiles and props costs a handful of components.
+    // CullDistance (cm) hides small props far away; 0 never culls.
+    UFUNCTION(BlueprintCallable, Category = "Romance")
+    void AddPieces(UStaticMesh* Mesh, UMaterialInterface* Material, const TArray<FTransform>& Transforms,
+        bool bShadow = true, float CullDistance = 0.f);
+
+    UFUNCTION(BlueprintCallable, Category = "Romance")
+    void ClearPieces();
+
 private:
+    UPROPERTY(VisibleAnywhere, Category = "Romance")
+    TArray<TObjectPtr<UHierarchicalInstancedStaticMeshComponent>> Pieces;
+
     UPROPERTY(VisibleAnywhere, Category = "Romance")
     TObjectPtr<UHierarchicalInstancedStaticMeshComponent> Blocks;
 

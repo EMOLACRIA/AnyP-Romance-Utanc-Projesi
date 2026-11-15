@@ -130,6 +130,17 @@ Kullanıcı geri bildirimi: hareket hissi iyi; ama dünya bomboş ve prototip gi
 - **Betikler:** `Scripts/make_polish_assets.py` (malzemeler + karakter içe aktarma; önce bu), sonra `Scripts/build_main_level.py`.
 - **Bilinen sınırlar:** arka plan şehri hâlâ tek bina modülünün renk ve boy çeşitlemesi; gerçek çeşitlilik için yeni bina/sokak assetleri gerekir. Karakterler sabit duruyor (animasyon yok). Juice oyunda oynanarak denenmedi; yalnızca derleme ve komut satırı testleri doğrulandı. Yeni ses yok.
 
+## CityPack ve sokaklı şehir (15 Kasım 2026)
+
+Kullanıcı geri bildirimi: bütün binalar aynı, dünya boş. Yeni bir asset paketi üretildi ve ana haritada kullanıldı.
+
+- **Paket:** `asset pack\CityPack` (31 asset, öteki paketlerle aynı boya/bake hattı; `README.md` ölçü ve origin kurallarını anlatır). 6 cephe bloğu, 4 zemin kat bloğu, 3 çatı kenarı + köşeleri, yol / yaya geçidi / kaldırım / bordür karoları, lamba, ağaç, bank, araba, minibüs, durak, trafik ışığı, çöp kutusu, yangın musluğu. Bloklar `Building_Block_4x4` ile aynı 4 × 4 × 4 m kutu ve aynı kutu çarpışması. Yeniden üretme: `blender -b --factory-startup --python scripts\build_city_pack.py` (yaklaşık 15 dk; adı verilen assetleri tek tek de üretir).
+- **İçe aktarma:** `Scripts/import_city.py` → `/Game/CityPack`; blok ve çatı kenarlarında Nanite açık. Sonra `Scripts/make_polish_assets.py`: her instanced mesh için `/Game/Romance/City/MI_<Mesh>_<n>` (cepheler 5 renk, araçlar 6 renk).
+- **Kod:** `ARomanceCityBlock::AddPieces` — betiğin verdiği mesh + malzeme + transform listesini instance olarak çizer (her mesh/malzeme çifti tek bileşen, çarpışma yok). Şehrin tamamı üç aktördür: `CityGround`, `CityBuildings`, `CityStreet`. Deniz hâlâ eski `flat_grid` yolunu kullanır.
+- **Yerleşim** (`Scripts/route_kit.py`, `city()`): dünya ızgarasında iki şeritli sokak ağı, kavşaklarda yaya geçidi; her parsel bordürlü kaldırımla çevrili; parsellerde bina, boş kalanlarda küçük meydan ya da otopark. Her bina bir stil seçer (ana cephe, araya karışan ikinci cephe, köşe cumbası, zemin katlar, çatı kenarı, renk); yüksek ve geniş olanların üstünde daha dar bir kule olur; çatılarda su deposu, klima, pano. Şehir rotaların 88 m çevresine yayılır. `kit.lane` rota koridoru, `kit.void` şehir olmayan yer (deniz, dağ), `kit.core` rota binalarının altı (ağaç ve lamba konmaz).
+- **Rota binaları:** yalnızca kutunun içinde kalan bloklar (`ROUTE_FACADES`, `ROUTE_GROUNDS`) bina başına değişerek kullanılır; taban alanı, yükseklik ve çarpışma aynı. Altı test geçiyor.
+- **Bilinen sınırlar:** dağın çevresi hâlâ düz koyu zemin. Şehrin dış kenarı sisin içinde aniden biter. Kare hızı ölçülmedi (yaklaşık 16 bin cephe ve 15 bin zemin instance'ı var); düşerse `city(reach=...)` küçültülür. Oynanarak denenmedi; ekran görüntüleri `Saved/Shots/city_*.png`.
+
 ## Çalışma notları
 
 - **Açık editör derlemeyi engellerse:** yalnızca proje seçme ekranında bekleyen (bu projeyi yüklememiş) bir editör varsa `Build.bat` komutuna `-NoHotReloadFromIDE` eklemek yeter. Editör bu projeyi açmışsa önce kapatılmalı.

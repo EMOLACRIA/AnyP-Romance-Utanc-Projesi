@@ -417,20 +417,24 @@ for x, y, rz in ((-900, -1500, 30), (1400, -2600, 200), (-2600, -700, 110), (600
     put(harbor, HARBOR, "Rowboat", x / 100.0, -y / 100.0, -0.87, rz=rz, folder="Venue/Harbor", collide=False)
 
 # Background city: keep it off the three lanes, the venues, the sea and the mountain, then fill the rest.
-kit.keep_out(A, -1200, -1500, (c0 + 5) * CELL + 400, 1500)
-kit.keep_out(B, -1200, -1500, r2.ix * CELL + 400, 1500)
-kit.keep_out(C, -1200, -1500, r3.ix * CELL + 400, 1500)
+# The city is laid out on one street grid around the three lanes (kit.city): CityPack facades, ground
+# floors and roof edges on the lots, roads, pavements and street furniture between them.
+kit.lane(A, -1200, -1500, (c0 + 5) * CELL + 400, 1500)
+kit.lane(B, -1200, -1500, r2.ix * CELL + 400, 1500)
+kit.lane(C, -1200, -1500, r3.ix * CELL + 400, 1500)
 kit.keep_out(cafe, -1800, -1800, 1800, 1800)
-kit.keep_out(harbor, SEA[0], SEA[1], SEA[2], SEA[3])
-kit.keep_out(harbor, -1800, -1800, 1800, 2200)
-kit.keep_out(mountain, -9000, -16000, 9000, 2400)
+kit.core(cafe, -1000, -1000, 1000, 1000)
+kit.void(harbor, SEA[0], SEA[1], SEA[2], SEA[3])
+kit.void(harbor, -1800, -1800, 1800, 2200)
+kit.void(mountain, -9000, -16000, 9000, 2400)
 rng = random.Random(7)
-city = kit.skyline(A, 0, c0 + 4, rng) + kit.skyline(B, 3, r2.ix, rng) + kit.skyline(C, 0, r3.ix, rng)
+city = kit.skyline(rng)
 unreal.log("Background city: %d buildings" % city)
 
 # ================================================================ sky, light, street
+# The dark plane lies just under the road tiles and shows only beyond the city's edge.
 mid_x, mid_y, _ = B.at(r2.ix * CELL / 2, 0)
-street = mesh(Frame(), "/Engine/BasicShapes/Plane", mid_x - 12000, mid_y, 0, scale=(1400, 1400, 1), folder="Sky", collide=False)
+street = mesh(Frame(), "/Engine/BasicShapes/Plane", mid_x - 12000, mid_y, -12, scale=(1400, 1400, 1), folder="Sky", collide=False)
 street.static_mesh_component.set_material(0, unreal.EditorAssetLibrary.load_asset("/Game/Romance/M_Street"))
 kit.spawn(unreal.VolumetricCloud, Frame(), 0, 0, 0, label="Clouds", folder="Sky")
 

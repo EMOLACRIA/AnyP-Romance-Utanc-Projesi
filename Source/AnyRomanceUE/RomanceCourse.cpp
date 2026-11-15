@@ -92,8 +92,68 @@ void ARomanceCityBlock::OnConstruction(const FTransform& Transform)
     Rebuild();
 }
 
+void ARomanceCityBlock::AddPieces(UStaticMesh* Mesh, UMaterialInterface* Material, const TArray<FTransform>& Transforms,
+    bool bShadow, float CullDistance)
+{
+    if (!Mesh || Transforms.IsEmpty())
+    {
+        return;
+    }
+    bManual = true;
+    UHierarchicalInstancedStaticMeshComponent* Part = nullptr;
+    for (UHierarchicalInstancedStaticMeshComponent* Candidate : Pieces)
+    {
+        if (Candidate && Candidate->GetStaticMesh() == Mesh
+            && (Candidate->OverrideMaterials.Num() ? Candidate->OverrideMaterials[0].Get() : nullptr) == Material)
+        {
+            Part = Candidate;
+            break;
+        }
+    }
+    if (!Part)
+    {
+        Part = NewObject<UHierarchicalInstancedStaticMeshComponent>(this, NAME_None, RF_Transactional);
+        Part->SetMobility(EComponentMobility::Static);
+        Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        Part->SetStaticMesh(Mesh);
+        if (Material)
+        {
+            Part->SetMaterial(0, Material);
+        }
+        Part->SetCastShadow(bShadow);
+        if (CullDistance > 0.f)
+        {
+            Part->SetCullDistances(FMath::RoundToInt(CullDistance * .85f), FMath::RoundToInt(CullDistance));
+        }
+        Part->SetupAttachment(RootComponent);
+        // An instance component is saved with the actor, like one added by hand in the editor.
+        AddInstanceComponent(Part);
+        Part->RegisterComponent();
+        Pieces.Add(Part);
+    }
+    Part->AddInstances(Transforms, false, false);
+}
+
+void ARomanceCityBlock::ClearPieces()
+{
+    for (UHierarchicalInstancedStaticMeshComponent* Part : Pieces)
+    {
+        if (Part)
+        {
+            RemoveInstanceComponent(Part);
+            Part->DestroyComponent();
+        }
+    }
+    Pieces.Reset();
+    bManual = false;
+}
+
 void ARomanceCityBlock::Rebuild()
 {
+    if (bManual)
+    {
+        return;
+    }
     Blocks->ClearInstances();
     Roofs->ClearInstances();
     Blocks->SetStaticMesh(BlockMesh);
