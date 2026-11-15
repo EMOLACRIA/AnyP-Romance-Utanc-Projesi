@@ -141,6 +141,19 @@ Kullanıcı geri bildirimi: bütün binalar aynı, dünya boş. Yeni bir asset p
 - **Rota binaları:** yalnızca kutunun içinde kalan bloklar (`ROUTE_FACADES`, `ROUTE_GROUNDS`) bina başına değişerek kullanılır; taban alanı, yükseklik ve çarpışma aynı. Altı test geçiyor.
 - **Bilinen sınırlar:** dağın çevresi hâlâ düz koyu zemin. Şehrin dış kenarı sisin içinde aniden biter. Kare hızı ölçülmedi (yaklaşık 16 bin cephe ve 15 bin zemin instance'ı var); düşerse `city(reach=...)` küçültülür. Oynanarak denenmedi; ekran görüntüleri `Saved/Shots/city_*.png`.
 
+## Revizyon turu: mekânlar, düşme, deniz, NPC (15 Kasım 2026)
+
+Kullanıcı geri bildirimi: date mekânları düzensiz ve çirkin; düşme noktası yok; kapalı mekânlara girilemiyor; deniz binalar ve karayla kötü birleşiyor; E ile konuşulan NPC'lerin yeri kötü.
+
+- **Girilemeyen mekânlar:** kafe ve dağ evindeki kapı kanatları yarı açıktı ve çarpışmaları kapı boşluğunu kapatıyordu. Kanatlar duvara yaslanacak kadar açıldı ve çarpışmaları kapatıldı.
+- **Şehir kafesi:** iki duvarlı demo dekoru yerine dört duvarlı, tavanlı ve çatılı kapalı bir kafe (kapı gelen oyuncuya bakar), dışında tabela, saksılar, menü panosu; çatıda masalı teras ve çevresinde parapet (iniş ve harbor çıkışında açıklık).
+- **Düşme:** sokak, rıhtım ve denizde zemin yok. Ayakları `FallLine` etiketli işaretin (z = -30) altına inen oyuncu düşmüş sayılır: ekran kararıp açılır, ses çalar, "You fell" yazısı çıkar, son checkpoint'e döner, saat işlemeye devam eder. `R` ile dönüşte de aynı kararma var.
+- **Deniz ve kıyı:** su sokak seviyesinin 1,2 m altına (z -120) indi; kıyı çizgisi harbor-local y = 1100 (dünya y = 31000). Şehir denize her değdiği yerde taş rıhtım duvarı, bordür, korkuluk ve fener alır (`kit.sea`, `route_kit.city`). İskele 40 cm'ye indi, kazıklar suya uzandı, iskele kenarına korkuluk ve fener eklendi. Rota 3 artık suyun içinde değil, karada kıyı boyunca gider ve rota 2'den 12 m uzakta başlar (date atlanamasın diye); iskeledeki ped onun ilk çatısına fırlatır.
+- **Dağ:** kayalar suyun altına iner, kara tarafı karla kaplı, kıyısı kaya sırasıyla biter; şehir dağın önüne kadar uzanır.
+- **NPC'ler:** Ari kafenin içinde iki kişilik masanın yanında kapıya dönük; Bea iskelede şemsiye altındaki masanın yanında iskeleye dönük; Jules dağ evinin kapısından 1,6 m içeride kapıya dönük, kapıdan bakınca görünüyor. Date noktası her birinin bir adım önünde.
+- **Hata düzeltmesi:** 180° döndürülmüş çerçevelerde kutu koordinatları kayan nokta hatası yüzünden bir hücre sırasını düşürüyordu (`route_kit.box` artık yuvarlıyor).
+- Altı test geçiyor. Oynanarak denenmedi.
+
 ## Çalışma notları
 
 - **Açık editör derlemeyi engellerse:** yalnızca proje seçme ekranında bekleyen (bu projeyi yüklememiş) bir editör varsa `Build.bat` komutuna `-NoHotReloadFromIDE` eklemek yeter. Editör bu projeyi açmışsa önce kapatılmalı.

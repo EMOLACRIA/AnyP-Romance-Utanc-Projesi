@@ -153,6 +153,8 @@ private:
     TArray<TObjectPtr<AActor>> DateActors;
     void UpdateDateActors();
     float ScreenAge = 0;
+    // Seconds left on the dark flash drawn after a checkpoint reset (a fall or R).
+    float ResetFlash = 0;
 
     UPROPERTY()
     TObjectPtr<URomanceSave> Settings;

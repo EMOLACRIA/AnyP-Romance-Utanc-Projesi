@@ -73,7 +73,8 @@ def block(frame, x, y, floor, scale=(1.0, 1.0, 1.0), tags=(), folder="Route/Roof
 
 def box(frame, x0, y0, x1, y1):
     """World-aligned box around a local rectangle (frames are turned in right angles)."""
-    pts = [frame.at(x, y) for x in (x0, x1) for y in (y0, y1)]
+    # Rounded: a frame turned 180 degrees puts 31000 at 30999.9999..., which would drop a whole row of cells.
+    pts = [tuple(round(v, 2) for v in frame.at(x, y)) for x in (x0, x1) for y in (y0, y1)]
     return (min(p[0] for p in pts), min(p[1] for p in pts), max(p[0] for p in pts), max(p[1] for p in pts))
 
 
@@ -101,6 +102,17 @@ def void(frame, x0, y0, x1, y1):
     """Somewhere that is not city at all (the sea, the mountain): no buildings and no streets."""
     keepouts.append(box(frame, x0, y0, x1, y1))
     voids.append(keepouts[-1])
+
+
+seas = []             # world boxes of open water; the city meets them with a quay
+QUAY_TOP, QUAY_BOTTOM = -12.0, -320.0
+
+
+def sea(frame, x0, y0, x1, y1):
+    """Open water: a void the city meets with a stone quay, a kerb, railings and lanterns.
+    The water itself must lie below the street (z 0) and above QUAY_BOTTOM."""
+    void(frame, x0, y0, x1, y1)
+    seas.append(voids[-1])
 
 
 def city_material(name, tint=0):
@@ -351,8 +363,37 @@ def city(rng, reach=22):
                 stand("Trash_Bin", x + d[0] * 120, y + d[1] * 120 , 15.0, cull=12000.0)
             elif r < 0.48:
                 stand("Fire_Hydrant", x + d[0] * 150, y + d[1] * 150, 15.0, yaw=face(*d), cull=12000.0)
-    for s in (ground, fronts, props):
+    # ---- the waterfront: wherever a land cell meets the sea, a quay wall drops into the water, with a kerb
+    # on its edge; open pavement and road ends get a railing, and a lantern every third cell.
+    quay, quays = Scenery("CityQuay"), []
+    for (i, j) in sorted(cells):
+        x, y = i * G, j * G
+        for d in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nx, ny = x + d[0] * G, y + d[1] * G
+            if (i + d[0], j + d[1]) in cells or not any(s[0] <= nx <= s[2] and s[1] <= ny <= s[3] for s in seas):
+                continue
+            ex, ey = x + d[0] * 200, y + d[1] * 200
+            along_x = d[1] != 0
+            quays.append(unreal.Transform(
+                location=unreal.Vector(ex - d[0] * 40, ey - d[1] * 40, (QUAY_TOP + QUAY_BOTTOM) / 2),
+                rotation=unreal.Rotator(roll=0.0, pitch=0.0, yaw=0.0 if along_x else 90.0),
+                scale=unreal.Vector(4.04, 0.8, (QUAY_TOP - QUAY_BOTTOM) / 100.0)))
+            ground.add("Kerb_4m", ex, ey, yaw=face(*d), shadow=False)
+            if (i, j) in built or any(b[0] <= x <= b[2] and b[1] <= y <= b[3] for b in lanes):
+                continue
+            for k in (-1, 1):
+                ox, oy = (k * 100, 0) if along_x else (0, k * 100)
+                quay.add("Dock_Railing_2m", ex - d[0] * 22 + ox, ey - d[1] * 22 + oy, 15.0,
+                         yaw=0.0 if along_x else 90.0, pack="HarborCafePack", cull=20000.0)
+            if (i + j) % 3 == 0:
+                quay.add("Dock_Lantern", ex - d[0] * 70, ey - d[1] * 70, 15.0, yaw=face(*d), pack="HarborCafePack",
+                         cull=26000.0)
+    for s in (ground, fronts, props, quay):
         s.commit()
+    if quays:
+        walls = spawn(unreal.RomanceCityBlock, Frame(), 0, 0, 0, label="CityQuayWall", folder="City")
+        walls.add_pieces(load_mesh("/Engine/BasicShapes/Cube"), city_material("Quay"), quays, True, 0.0)
+    unreal.log("Waterfront: %d quay segments" % len(quays))
     unreal.log("City: %d buildings, %d ground tiles, %d facade pieces, %d street pieces" % (
         buildings, ground.total, fronts.total, props.total))
     return buildings

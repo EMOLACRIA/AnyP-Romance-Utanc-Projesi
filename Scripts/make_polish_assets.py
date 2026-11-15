@@ -162,6 +162,14 @@ for path in EAL.list_assets("/Game/CityPack", recursive=False, include_folder=Fa
     city_meshes += 1
 for name in PARKOUR_INSTANCED:
     city_instances("ParkourPack", name, TINTS[:1])
+# The waterfront along the sea (route_kit.city): the harbor pack's railing and lantern, and the quay wall,
+# an engine cube painted with the pavement's stone, a shade darker.
+for name in ("Dock_Railing_2m", "Dock_Lantern", "Bollard"):
+    city_instances("HarborCafePack", name, TINTS[:1])
+quay = fresh("MI_Quay_0", CITY, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+MEL.set_material_instance_parent(quay, master)
+MEL.set_material_instance_texture_parameter_value(quay, "Paint", EAL.load_asset("/Game/CityPack/T_Pavement_4x4"))
+MEL.set_material_instance_vector_parameter_value(quay, "Tint", unreal.LinearColor(0.66, 0.64, 0.62, 1))
 unreal.log("City materials: %d CityPack meshes" % city_meshes)
 
 burst()

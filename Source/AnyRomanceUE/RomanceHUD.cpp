@@ -266,6 +266,11 @@ void ARomanceHUD::DrawHUD()
         }
         UI.Label(TEXT("WASD  Move    SPACE  Jump / kick    CTRL  Slide    LMB  Sling    RMB  Charge    R  Checkpoint    ESC  Pause"),
             Card, Middle, H - 35, .75f, .5f);
+        // After a fall or a reset the screen comes back from dark.
+        if (Mode->ResetFlash > 0)
+        {
+            UI.Box(Alpha(Ink, FMath::Clamp(Mode->ResetFlash / .55f, 0.f, 1.f) * .92f), 0, 0, W, H);
+        }
         return;
     }
 

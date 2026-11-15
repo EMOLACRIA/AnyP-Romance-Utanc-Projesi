@@ -51,19 +51,33 @@ def date_spot(x, y, yaw, ahead=110.0):
 
 # ================================================================ venues
 def venue_city_cafe(f):
-    """Demo_Cafe: a 6 x 4 m room, door in the wall facing -X."""
-    def p(name, x, y, z=0.0, rz=0.0, s=1.0):
-        return put(f, CAFE, name, x, y, z, rz, s, folder="Venue/CityCafe")
+    """Demo_Cafe's 6 x 4 m room, closed into a real cafe on the rooftop: four walls with the door facing the
+    arriving runner (-X), a ceiling and roof, and a terrace with tables and a parapet around the roof.
+    Blender coordinates in metres (put() turns them into Unreal ones)."""
+    def p(name, x, y, z=0.0, rz=0.0, s=1.0, collide=True):
+        return put(f, CAFE, name, x, y, z, rz, s, folder="Venue/CityCafe", collide=collide)
 
     for x in (-2, 0, 2):
         for y in (-1, 1):
             p("Floor_Tile_2x2" if x == 2 else "Floor_Wood_2x2", x, y)
+            p("Floor_Wood_2x2", x, y, 2.83, s=(1, 1, -1))        # ceiling: the same boards, face down
+    # Walls: windows on the back and on the terrace front, the door wall facing the arrival, a blank wall
+    # behind the bar. Wall fronts face the room.
     p("Wall_Window_2m", -2, 2.06)
     p("Wall_Plain_2m", 0, 2.06)
     p("Wall_Plain_2m", 2, 2.06)
+    for x in (-2, 0, 2):
+        p("Wall_Window_2m", x, -2.06, rz=180)
     p("Wall_Door_2m", -3.06, -1, rz=90)
-    p("Door_Glass", -3.06, -1.465, 0.005, rz=62)
     p("Wall_Window_2m", -3.06, 1, rz=90)
+    p("Door_Glass", -3.06, -1.465, 0.005, rz=0, collide=False)   # swung fully open, flat out of the doorway
+    for y in (-1, 1):
+        p("Wall_Plain_2m", 3.06, y, rz=-90)
+    # Roof: two of the parkour pack's roof tiles, widened to cover the walls, with an eave over the short sides.
+    for x in (-2, 2):
+        put(f, kit.PARKOUR, "Roof_Tile_4x4", x, 0, 3.12, s=(1, 1.16, 1), folder="Venue/CityCafe")
+
+    # Bar
     p("Counter_Module", 2.2, 0.3)
     p("Display_Case", 1.03, 0.3)
     p("Counter_Module", 2.2, 1.62, rz=180)
@@ -73,7 +87,6 @@ def venue_city_cafe(f):
     p("POS_Register", 2.50, 0.32, 1.05, rz=180)
     p("Napkin_Sugar_Set", 1.85, 0.12, 1.05)
     p("Takeaway_Cup", 2.10, 0.42, 1.05)
-    p("Takeaway_Cup", 2.19, 0.36, 1.05)
     p("PourOver_Set", 1.80, 0.50, 1.05)
     p("Stool_Bar", 1.90, -0.42)
     p("Stool_Bar", 2.55, -0.42)
@@ -84,30 +97,53 @@ def venue_city_cafe(f):
     p("Coffee_Bag", 2.05, 1.89, 1.695, rz=-12)
     p("Syrup_Bottles", 2.45, 1.89, 1.695)
     p("Mug", 1.90, 1.89, 2.055, rz=30)
-    p("Mug", 2.03, 1.89, 2.055, rz=-40)
     p("Plant_Snake", 2.50, 1.89, 2.055, s=0.6)
     p("Wall_Menu", 0.2, 2.0, 1.9)
     p("Wall_Sign", 1.25, 2.0, 2.2)
-    p("Rug_Round", -1.9, 0.55)
+    # Lounge by the back window
+    p("Rug_Round", -1.9, 0.75)
     p("Sofa_Bench", -1.9, 1.5)
-    p("Table_Round", -1.9, 0.55, 0.014)
-    p("Armchair", -1.9, -0.45, rz=180)
-    p("Cup_Saucer", -2.05, 0.60, 0.764)
-    p("Croissant_Plate", -1.78, 0.48, 0.764)
+    p("Table_Round", -1.9, 0.75, 0.014)
+    p("Cup_Saucer", -2.05, 0.80, 0.764)
+    p("Croissant_Plate", -1.78, 0.68, 0.764)
     p("Plant_Fiddle", -0.72, 1.62)
-    p("Pendant_Lamp", -1.9, 0.55, 2.8)
+    p("Pendant_Lamp", -1.9, 0.75, 2.8)
+    # The table set for two by the front window, where Ari waits
     p("Table_Square", 0.0, -1.0)
     p("Chair_Cafe", -0.62, -1.0, rz=90)
     p("Chair_Cafe", 0.62, -1.0, rz=-90)
     p("Iced_Latte", -0.15, -0.92, 0.75)
     p("Cake_Slice", 0.14, -1.08, 0.75, rz=25)
-    p("Serving_Tray", 0.05, -0.80, 0.75)
-    p("Donut", 0.10, -0.80, 0.762)
     p("Pendant_Lamp", 0.0, -1.0, 2.8)
-    p("Menu_AFrame", 1.45, -1.45, rz=-25)
     p("Plant_Snake", -2.65, -1.72)
-    warm_light(f, 0.0, -1.0, 2.2, intensity=2.0, radius=450)
-    warm_light(f, 2.2, 0.3, 2.2, intensity=2.0, radius=450)
+    # Outside: the sign over the door, plants by it, the menu board for passers-by
+    p("Wall_Sign", -3.20, 0.0, 2.3, rz=-90)
+    p("Plant_Fiddle", -3.55, -2.05)
+    p("Plant_Fiddle", -3.55, 2.05)
+    p("Menu_AFrame", -3.9, 0.15, rz=-70)
+    # Terrace behind the cafe (+Y in Blender) and along its far side
+    for x in (-1.6, 1.6):
+        p("Table_Round", x, 4.2)
+        p("Chair_Cafe", x - 0.62, 4.2, rz=90)
+        p("Chair_Cafe", x + 0.62, 4.2, rz=-90)
+    p("Cup_Saucer", -1.65, 4.25, 0.75)
+    p("Iced_Latte", 1.55, 4.15, 0.75)
+    p("Table_Square", 4.8, 0.0)
+    p("Chair_Cafe", 4.8, 0.62, rz=180)
+    p("Chair_Cafe", 4.8, -0.62)
+    for x, y in ((-4.2, 5.4), (4.2, 5.4), (5.6, 2.2), (5.6, -2.2), (-4.2, -5.4), (4.2, -5.4)):
+        p("Plant_Fiddle", x, y)
+    # Parapet round the roof (5 x 5 cells, 20 m), open where the runner lands (-X) and where they leave for
+    # the harbor (+Y in Unreal).
+    for c in (-800, -400, 0, 400, 800):
+        for side in (-1, 1):
+            if not (side < 0 and c == 0):
+                mesh(f, "Parapet_4m", side * 981, c, -2, yaw=90, folder="Venue/CityCafe")
+            if not (side > 0 and c == 0):
+                mesh(f, "Parapet_4m", c, side * 981, -2, folder="Venue/CityCafe")
+    warm_light(f, 0.0, -1.0, 2.3, intensity=2.2, radius=450)
+    warm_light(f, 2.2, 0.9, 2.3, intensity=2.2, radius=450)
+    warm_light(f, -1.9, 0.75, 2.3, intensity=2.0, radius=420)
 
 
 def venue_harbor(f):
@@ -125,10 +161,7 @@ def venue_harbor(f):
             p(name, p0[0] + dx * t, p0[1] + dy * t, p0[2], rz=math.degrees(math.atan2(dy, dx)),
               s=(length / (2 * n), 1, 1), collide=False)
 
-    # Sea: the demo's 2 m tiles doubled to 4 m, over a wider area, with no collision (falling in resets).
-    for x in range(-22, 23, 4):
-        for y in range(-22, 15, 4):
-            p("Water_2x2", x, y, -0.75, s=(2, 2, 1), collide=False)
+    # The water is the open sea laid at the end of the script, 1.6 m under the deck.
     for x in (-2, 0, 2):
         for y in (-1, 1):
             p("Dock_Platform_2x2", x, y)
@@ -136,11 +169,18 @@ def venue_harbor(f):
             p("Dock_Platform_2x2", x, y)
     for x in (-3.05, -1.0, 1.0, 3.05):
         for y in (-2.05, 2.05, -6.0, -10.05):
-            p("Dock_Piling", x, y)
+            p("Dock_Piling", x, y, -0.14, s=(1, 1, 1.25))     # longer, down into the lower water
     p("Dock_Railing_2m", -2, 1.93)
     p("Dock_Railing_2m", -2.93, -1, rz=90)
     p("Dock_Railing_2m", -2.93, 1, rz=90)
     p("Dock_Railing_2m", 2.93, -1, rz=90)
+    for y in (-3, -5, -7):                  # along the pier, open at its end where the runner lands
+        for x in (-2.93, 2.93):
+            p("Dock_Railing_2m", x, y, rz=90)
+    p("Dock_Lantern", -2.8, -6.0, rz=180)
+    p("Dock_Lantern", 2.8, -6.0, rz=180)
+    p("Bollard", -2.6, -9.8, rz=180)
+    p("Bollard", 2.6, -9.8, rz=180)
     p("Kiosk_Shack", KX, KY - KDY)
     cz = 1.18
     p("Caydanlik", KX - 0.85, KY - 1.14, cz, rz=20)
@@ -174,10 +214,6 @@ def venue_harbor(f):
     p("Planter_Seagrass", -2.42, 1.70)
     p("Bench_Dock", -2.62, -0.62, rz=90)
     p("Lifebuoy", -2.86, 0.02, 0.60, rz=90)
-    p("Table_Barrel", -1.35, -1.05)
-    p("Enamel_Mug", -1.45, -1.0, 0.76, rz=40)
-    p("Tea_Glass", -1.22, -1.12, 0.76)
-    p("Simit_Plate", -1.30, -0.92, 0.76)
     p("Deck_Chair", 0.15, -1.08)
     p("Deck_Chair", 1.30, -1.08)
     p("Crate_Wood", 0.73, -1.25, rz=90)
@@ -189,7 +225,7 @@ def venue_harbor(f):
     p("Dock_Lantern", 2.8, -1.62, rz=180)
     span("String_Lights_2m", (-2.8, -1.8, 2.52), (2.8, -1.8, 2.52), 3)
     span("Bunting_2m", (-2.8, -1.78, 2.40), (KX - 1.55, KY - 1.05, 2.40), 2)
-    p("Rowboat", -4.6, -3.15, -0.87, rz=7)
+    p("Rowboat", -4.6, -3.15, -1.72, rz=7, collide=False)
     warm_light(f, -2.8, -1.62, 2.3, intensity=1.5, radius=400)
     warm_light(f, 2.8, -1.62, 2.3, intensity=1.5, radius=400)
 
@@ -215,7 +251,7 @@ def venue_mountain(f, base_floors):
         p("Cliff_Block_4x4", x, 14, 0)
         p("Cliff_Block_4x4", x, 14, 2)
     # Rock under the terraces, down to street level, around the edge only.
-    depth = int(math.ceil(walk_z(base_floors) / 200.0))
+    depth = int(math.ceil(walk_z(base_floors) / 200.0)) + 1      # one more, down into the sea on the north side
     for x in cols:
         for y in rows:
             if x in (cols[0], cols[-1]) or y in (rows[0], rows[-1]):
@@ -231,7 +267,7 @@ def venue_mountain(f, base_floors):
         p("Chalet_Roof_4m", CX + sx * 2, CY, G)
     p("Chalet_Wall_Door", CX - 2, CY - 3, G)
     p("Chalet_Wall_Window", CX + 2, CY - 3, G)
-    p("Chalet_Door", CX - 2 - 0.54, CY - 3, F, rz=38)
+    p("Chalet_Door", CX - 2 - 0.54, CY - 3, F, rz=95, collide=False)    # open flat against the wall
     p("Chimney_Stone", CX - 1.5, CY + 2.1, G + 3.2)
     fy = CY - 3 - 0.15
     p("Deck_Wood_4x4", CX - 2, CY - 5, F)
@@ -304,11 +340,11 @@ def venue_mountain(f, base_floors):
     warm_light(f, 7.6, -0.6, G + 0.6, intensity=2.0, radius=500)
     warm_light(f, CX - 2, CY - 3.6, G + 1.8, intensity=1.5, radius=400)
     # Snowy peaks behind and beside the terraces: the pack's large rock, scaled up, standing on the street.
-    ground = -walk_z(base_floors) / 100.0
+    ground = -walk_z(base_floors) / 100.0 - 3.0      # bases under the sea and the street
     for x, y, s, rz in ((-34, 62, 34, 20), (18, 78, 44, 140), (62, 40, 30, 250), (-70, 20, 26, 80),
                         (48, -6, 18, 310), (-52, -14, 16, 200), (0, 120, 56, 60)):
         put(f, MOUNTAIN, "Rock_Snowy_Large", x, y, ground, rz=rz, s=s, folder="Venue/Mountain/Peaks", collide=False)
-    return (CX - 0.5, CY - 1.2, F)      # open floor between the door and the fireplace rug
+    return (CX - 2.0, CY - 1.4, F)      # 1.6 m straight in from the door, seen through it on the way in
 
 
 # ================================================================ route 1: city rooftops, heading +X
@@ -336,10 +372,11 @@ r1.roof(c0, c0 + 4, lane=(-2, -1, 0, 1, 2))
 cafe = A.child((c0 + 2) * CELL, 0, r1.z + 2, 0)
 venue_city_cafe(cafe)
 checkpoint(A, c0 * CELL, 0, r1.z, "City cafe", ring=False)
-sx, sy = date_spot(-40, 10, 180)
+# Ari waits at the table for two inside, facing the door.
+sx, sy = date_spot(-145, 100, 180)
 ari = point(cafe, K.DATE, sx, sy, 0, yaw=180, order=0, label="City Cafe", radius=350,
-            hint="Ari is waiting inside the cafe. Walk up and press E.")
-date_character(cafe, 0, "Ari", -40, 10, 0, yaw=180)
+            hint="Ari is waiting inside the cafe. Go in and press E.")
+date_character(cafe, 0, "Ari", -145, 100, 0, yaw=180)
 r1_cells = c0 + 2
 
 # ================================================================ route 2: down to the harbor, heading +Y
@@ -357,25 +394,29 @@ r2.slope_down().run(1, props=False).gap(2).run(3).cp("Last slope")
 r2.bridge(2).run(2).wallrun(3, side=-1).run(2).cp("Above the harbor", "Drop to the pier. Bea is on the dock.")
 
 # Harbor: the pier's end sits 1 m past the last roof edge, 3.2 m below it.
-DOCK_Z = 110.0        # deck height; the sea sits 0.75 m below it, above the street plane
+DOCK_Z = 40.0         # deck height; the sea is 1.6 m below it (z -120), under the street and the quay
 harbor = B.child((r2.ix * CELL - 200) + 100 + 1000, 0, DOCK_Z, 90)
 venue_harbor(harbor)
 checkpoint(harbor, 0, 700, 0, "Pier", ring=False, yaw=-90)
-sx, sy = date_spot(-30, 40, 90)
+# Bea waits by the bistro table under the parasol, facing the pier the runner comes down.
+sx, sy = date_spot(-195, 15, 90)
 bea = point(harbor, K.DATE, sx, sy, 0, yaw=90, order=1, label="Harbor Cafe", radius=350,
-            hint="Bea is waiting on the dock. Walk up and press E.")
-date_character(harbor, 1, "Bea", -30, 40, 0, yaw=90)
+            hint="Bea is waiting on the dock by the parasol. Walk up and press E.")
+date_character(harbor, 1, "Bea", -195, 15, 0, yaw=90)
 r2_cells = r2.cells() + 4
 
 # ================================================================ route 3: up to the mountain, heading -X
-hx, hy, _ = harbor.at(600, 300)
+# The coast runs along harbor-local y = 1100, where route 2's last roof ends. Route 3 starts on land behind it,
+# 12 m clear of route 2 so the harbor can't be skipped by stepping across, and runs along the waterfront.
+COAST = 1100.0
+hx, hy, _ = harbor.at(2000, 1700)
 C = Frame(hx, hy, 0, harbor.yaw)
 r3 = Course(C, 0, 1, "mountain")
 # Jump pad on the pier launches up to the first roof; a rocket jump works too.
 put(harbor, kit.PARKOUR, "Jump_Pad", 2.0, -5.0, 0.0, folder="Route")
 pad = point(harbor, K.PAD, 200, 500, 0, radius=70, name="PierPad",
             hint="Jules is up the mountain. The pad on the pier gets you back to the roofs.")
-pad.set_editor_property("pad_target", unreal.Vector(400, -200, r3.z - DOCK_Z))
+pad.set_editor_property("pad_target", unreal.Vector(2000, 1200, r3.z - DOCK_Z))   # route 3's first roof
 r3.run(3).cp("Back on the roofs").slide_gate().run(2).gap(1).run(2)
 r3.shaft_up().run(3).cp("Second shaft")
 r3.wallrun(3, side=1).run(2).gate().run(2).cp("Mountain gate")
@@ -390,12 +431,14 @@ r3.sling(5, side=-1)
 mountain = C.child((r3.ix * CELL - 200) + 1200, 0, r3.z, 90)
 spot = venue_mountain(mountain, r3.floors)
 checkpoint(mountain, 0, 900, 0, "Snow terrace", ring=False, yaw=-90)
-# Jules stands on the fireplace rug looking at the door wall; the runner meets her a step in front.
-jx, jy = spot[0] * 100, -spot[1] * 100 - 90
-sx, sy = date_spot(jx, jy, 90)
-jules = point(mountain, K.DATE, sx, sy, spot[2] * 100, yaw=90, order=2,
+# Jules waits just inside the chalet, turned toward its open door; the runner meets her a step in front.
+jx, jy = spot[0] * 100, -spot[1] * 100
+door = (-300.0, -100.0)                 # the chalet doorway (Blender (-3, 1)) in Unreal coordinates
+jyaw = math.degrees(math.atan2(door[1] - jy, door[0] - jx))
+sx, sy = date_spot(jx, jy, jyaw)
+jules = point(mountain, K.DATE, sx, sy, spot[2] * 100, yaw=jyaw, order=2,
               label="Mountain Lodge", radius=350, hint="Jules is inside the chalet. Go in and press E.")
-date_character(mountain, 2, "Jules", jx, jy, spot[2] * 100, yaw=90)
+date_character(mountain, 2, "Jules", jx, jy, spot[2] * 100, yaw=jyaw)
 r3_cells = r3.cells() + 5
 
 # ================================================================ schedule
@@ -410,11 +453,18 @@ for i, (date, t) in enumerate(zip((ari, bea, jules), times)):
 # ================================================================ the world around the routes
 # Open sea behind the harbor: one instanced sheet of the pack's water tile, 8 m per tile, just under the
 # harbor's own tiles. It stops 60 m along route 3 so that route runs back into the city.
-SEA = (-28000.0, -40000.0, 6000.0, 2200.0)      # harbor-local x0, y0, x1, y1
-kit.instanced_grid(harbor, "Water_2x2", HARBOR, SEA[0] + 400, SEA[1] + 400, -78.0,
-                   int((SEA[2] - SEA[0]) / 800), int((SEA[3] - SEA[1]) / 800), 800.0, (4, 4, 1), folder="Venue/Harbor")
-for x, y, rz in ((-900, -1500, 30), (1400, -2600, 200), (-2600, -700, 110), (600, -5200, 75)):
-    put(harbor, HARBOR, "Rowboat", x / 100.0, -y / 100.0, -0.87, rz=rz, folder="Venue/Harbor", collide=False)
+# The sea lies on the harbor's open side of the coast, along the whole of route 3 and past the mountain.
+# Its surface is 1.2 m under the street; the city meets it with a quay (kit.sea). The water sheet runs a
+# little under the land so no gap shows at the quay.
+SEA = (-30000.0, -40000.0, 46000.0, COAST)      # harbor-local x0, y0, x1, y1
+WATER_Z = -160.0                                # harbor-local: world z -120
+kit.instanced_grid(harbor, "Water_2x2", HARBOR, SEA[0] + 400, SEA[1] + 400, WATER_Z,
+                   int((SEA[2] - SEA[0]) / 800), int(math.ceil((SEA[3] - SEA[1]) / 800)) + 1, 800.0, (4, 4, 1),
+                   folder="Venue/Harbor")
+for x, y, rz in ((-900, -1500, 30), (1400, -2600, 200), (-2600, -700, 110), (600, -5200, 75), (9000, -3000, 140),
+                 (17000, -1800, 20)):
+    put(harbor, HARBOR, "Rowboat", x / 100.0, -y / 100.0, WATER_Z / 100.0 - 0.12, rz=rz, folder="Venue/Harbor",
+        collide=False)
 
 # Background city: keep it off the three lanes, the venues, the sea and the mountain, then fill the rest.
 # The city is laid out on one street grid around the three lanes (kit.city): CityPack facades, ground
@@ -424,9 +474,17 @@ kit.lane(B, -1200, -1500, r2.ix * CELL + 400, 1500)
 kit.lane(C, -1200, -1500, r3.ix * CELL + 400, 1500)
 kit.keep_out(cafe, -1800, -1800, 1800, 1800)
 kit.core(cafe, -1000, -1000, 1000, 1000)
-kit.void(harbor, SEA[0], SEA[1], SEA[2], SEA[3])
-kit.void(harbor, -1800, -1800, 1800, 2200)
-kit.void(mountain, -9000, -16000, 9000, 2400)
+kit.sea(harbor, SEA[0], SEA[1], SEA[2], SEA[3])
+kit.void(harbor, -1800, -1800, 1800, COAST)
+kit.void(mountain, -9000, -16000, 9000, 1300)      # up to the terrace front: the street and quay reach the rock
+# The mountain's foot: snow at street level wherever the mountain zone is land (mountain-local x > -600 is
+# south of the coast), and a row of snowy rock along the coast so the snow ends in a cliff, not in the air.
+FOOT_Z = -r3.z                                  # mountain-local height of the street
+kit.instanced_grid(mountain, "Snow_Ground_4x4", MOUNTAIN, -200, -15900, FOOT_Z, 12, 22, 800.0, (2, 2, 1),
+                   folder="Venue/Mountain/Foot")
+for k in range(44):
+    mesh(mountain, "Cliff_Block_4x4", -800, -16100 + k * 400, FOOT_Z - 200, pack=MOUNTAIN,
+         folder="Venue/Mountain/Foot", collide=False)
 rng = random.Random(7)
 city = kit.skyline(rng)
 unreal.log("Background city: %d buildings" % city)
@@ -434,9 +492,13 @@ unreal.log("Background city: %d buildings" % city)
 # ================================================================ sky, light, street
 # The dark plane lies just under the road tiles and shows only beyond the city's edge.
 mid_x, mid_y, _ = B.at(r2.ix * CELL / 2, 0)
-street = mesh(Frame(), "/Engine/BasicShapes/Plane", mid_x - 12000, mid_y, -12, scale=(1400, 1400, 1), folder="Sky", collide=False)
+street = mesh(Frame(), "/Engine/BasicShapes/Plane", mid_x - 12000, mid_y, -400, scale=(1400, 1400, 1), folder="Sky", collide=False)
 street.static_mesh_component.set_material(0, unreal.EditorAssetLibrary.load_asset("/Game/Romance/M_Street"))
 kit.spawn(unreal.VolumetricCloud, Frame(), 0, 0, 0, label="Clouds", folder="Sky")
+
+# Falling: the street, the quay and the sea have no floor. A runner whose feet drop below this line has
+# fallen and goes back to the last checkpoint (ARomanceMode reads the FallLine tag).
+point(Frame(), K.MARKER, 0, 0, -30, tags=("FallLine",), name="FallLine")
 
 sun = kit.spawn(unreal.DirectionalLight, Frame(), 0, 0, 3000, yaw=35, pitch=-42, label="Sun", folder="Sky")
 sc = sun.get_component_by_class(unreal.DirectionalLightComponent)

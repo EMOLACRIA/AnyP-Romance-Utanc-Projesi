@@ -625,6 +625,7 @@ void ARomanceMode::ResetCheckpoint()
             ++Falls;
             Player->RespawnAt(CheckpointFeet, CheckpointYaw);
             PadCooldown = 0;
+            ResetFlash = .55f;
             Notify(TEXT("Back at your checkpoint. The date clock keeps running."));
         }
     }
@@ -640,9 +641,12 @@ void ARomanceMode::HandleCourse(float DeltaSeconds)
 
     const FVector Position = Player->GetActorLocation();
     const FVector Feet = Position - FVector(0, 0, Player->GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+    // The street and the sea have no floor: falling below the fall line is a fall.
     if (Feet.Z < FallZ)
     {
         ResetCheckpoint();
+        Cue(ERomanceCue::Land, .8f);
+        Notify(TEXT("You fell. Back at your checkpoint; the clock kept running."));
         return;
     }
 
@@ -718,6 +722,7 @@ void ARomanceMode::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     ScreenAge += DeltaSeconds;
+    ResetFlash = FMath::Max(0.f, ResetFlash - DeltaSeconds);
     UpdateDateActors();
     if (CanRun())
     {
